@@ -42,8 +42,8 @@
 
         /* --- レスポンシブ制御 --- */
 
-        /* 表示パターン：小 (499px以下) */
-        @media (max-width: 499px) {
+        /* 表示パターン：小 (640px以下) */
+        @media (max-width: 640px) {
             .pane {
                 display: none !important;
                 width: 100%;
@@ -84,8 +84,8 @@
             }
         }
 
-        /* 表示パターン：大 (500px以上) */
-        @media (min-width: 500px) {
+        /* 表示パターン：大 (641px以上) */
+        @media (min-width: 641px) {
             .pane {
                 display: flex !important; 
                 flex: 1;
@@ -277,6 +277,7 @@
         let currentSizeIndex = 1;
         let activePaneId = 'A';
 
+        // 初期ロード時にローカルストレージから復元
         window.onload = () => {
             editorA.value = localStorage.getItem('p_a') || '';
             editorB.value = localStorage.getItem('p_b') || '';
@@ -286,22 +287,21 @@
             updateActiveUI();
         };
 
+        // UIの状態更新（アクティブ側の背景色やラベルを制御）
         function updateActiveUI() {
             const isA = activePaneId === 'A';
             
-            // 背景色とアクティブ状態のクラス切り替え
             paneA.className = `pane ${isA ? 'active' : 'inactive'} flex flex-col`;
             paneB.className = `pane ${!isA ? 'active' : 'inactive'} flex flex-col`;
             
-            // ヘッダーラベルの動的変更 (常にアクティブ側が Light)
             labelA.textContent = isA ? 'Side: Light' : 'Side: Shadow';
             labelB.textContent = !isA ? 'Side: Light' : 'Side: Shadow';
 
-            // モバイル用切り替えボタンの状態
             if (isA) flipToggle.classList.remove('flipped');
             else flipToggle.classList.add('flipped');
         }
 
+        // アクティブなペインの切り替え
         function setActivePane(id, focus = true) {
             if (activePaneId === id) return;
             activePaneId = id;
@@ -309,17 +309,20 @@
             if (focus) (id === 'A' ? editorA : editorB).focus();
         }
 
+        // モバイル用反転トグルのイベント
         flipToggle.addEventListener('click', (e) => {
             e.preventDefault();
             setActivePane(activePaneId === 'A' ? 'B' : 'A');
             showToast('Flipped');
         });
 
+        // エディタのフォーカス・入力イベント
         editorA.addEventListener('focus', () => setActivePane('A', false));
         editorB.addEventListener('focus', () => setActivePane('B', false));
         editorA.addEventListener('input', () => localStorage.setItem('p_a', editorA.value));
         editorB.addEventListener('input', () => localStorage.setItem('p_b', editorB.value));
 
+        // フォントサイズの適用
         function applyTextSize() {
             [editorA, editorB].forEach(ed => {
                 sizes.forEach(s => ed.classList.remove(s));
@@ -333,12 +336,15 @@
         sizeUpBtn.addEventListener('click', () => { if (currentSizeIndex < sizes.length - 1) { currentSizeIndex++; applyTextSize(); } });
         sizeDownBtn.addEventListener('click', () => { if (currentSizeIndex > 0) { currentSizeIndex--; applyTextSize(); } });
 
+        // コピペ機能（クリップボード）
         copyBtn.addEventListener('click', () => {
             const val = (activePaneId === 'A' ? editorA : editorB).value;
             if (!val) return;
             const el = document.createElement("textarea");
             el.value = val; document.body.appendChild(el);
-            el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            el.select(); 
+            document.execCommand('copy'); 
+            document.body.removeChild(el);
             showToast(`Copied`);
         });
 
@@ -347,6 +353,7 @@
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, 0)'; }, 1000);
         }
 
+        // クリアボタンのダイアログ制御
         clearBtn.addEventListener('click', () => {
             if ((activePaneId === 'A' ? editorA : editorB).value.trim()) confirmDialog.classList.replace('hidden', 'flex');
         });
