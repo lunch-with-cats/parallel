@@ -1,86 +1,304 @@
+
+Gemini
+チャットを新規作成
+チャットを検索
+画像
+動画
+ライブラリ
+Gem
+ノートブックを新規作成
+佳叶の記録
+Gemini との会話
+
+
+/* --- レスポンシブ制御 --- */
+
+
+
+        /* 表示パターン：小 (499px以下) */
+
+        @media (max-width: 499px) {
+
+        /* 表示パターン：小 (640px以下) */
+
+        @media (max-width: 640px) {
+
+.pane {
+
+display: none !important;
+
+width: 100%;
+
+@@ -84,8 +84,8 @@
+
+}
+
+}
+
+
+
+        /* 表示パターン：大 (500px以上) */
+
+        @media (min-width: 500px) {
+
+        /* 表示パターン：大 (641px以上) */
+
+        @media (min-width: 641px) {
+
+.pane {
+
+display: flex !important; 
+
+flex: 1;
+
+@@ -277,6 +277,7 @@ <h3 class="text-[11px] font-black mb-4 text-slate-800 uppercase tracking-widest"
+
+let currentSizeIndex = 1;
+
+let activePaneId = 'A';
+
+
+
+        // 初期ロード時にローカルストレージから復元
+
+window.onload = () => {
+
+editorA.value = localStorage.getItem('p_a') || '';
+
+editorB.value = localStorage.getItem('p_b') || '';
+
+@@ -286,40 +287,42 @@ <h3 class="text-[11px] font-black mb-4 text-slate-800 uppercase tracking-widest"
+
+updateActiveUI();
+
+};
+
+
+
+        // UIの状態更新（アクティブ側の背景色やラベルを制御）
+
+function updateActiveUI() {
+
+const isA = activePaneId === 'A';
+
+
+
+            // 背景色とアクティブ状態のクラス切り替え
+
+paneA.className = `pane ${isA ? 'active' : 'inactive'} flex flex-col`;
+
+paneB.className = `pane ${!isA ? 'active' : 'inactive'} flex flex-col`;
+
+
+
+            // ヘッダーラベルの動的変更 (常にアクティブ側が Light)
+
+labelA.textContent = isA ? 'Side: Light' : 'Side: Shadow';
+
+labelB.textContent = !isA ? 'Side: Light' : 'Side: Shadow';
+
+
+
+            // モバイル用切り替えボタンの状態
+
+if (isA) flipToggle.classList.remove('flipped');
+
+else flipToggle.classList.add('flipped');
+
+}
+
+
+
+        // アクティブなペインの切り替え
+
+function setActivePane(id, focus = true) {
+
+if (activePaneId === id) return;
+
+activePaneId = id;
+
+updateActiveUI();
+
+if (focus) (id === 'A' ? editorA : editorB).focus();
+
+}
+
+
+
+        // モバイル用反転トグルのイベント
+
+flipToggle.addEventListener('click', (e) => {
+
+e.preventDefault();
+
+setActivePane(activePaneId === 'A' ? 'B' : 'A');
+
+showToast('Flipped');
+
+});
+
+
+
+        // エディタのフォーカス・入力イベント
+
+editorA.addEventListener('focus', () => setActivePane('A', false));
+
+editorB.addEventListener('focus', () => setActivePane('B', false));
+
+editorA.addEventListener('input', () => localStorage.setItem('p_a', editorA.value));
+
+editorB.addEventListener('input', () => localStorage.setItem('p_b', editorB.value));
+
+
+
+        // フォントサイズの適用
+
+function applyTextSize() {
+
+[editorA, editorB].forEach(ed => {
+
+sizes.forEach(s => ed.classList.remove(s));
+
+@@ -333,12 +336,15 @@ <h3 class="text-[11px] font-black mb-4 text-slate-800 uppercase tracking-widest"
+
+sizeUpBtn.addEventListener('click', () => { if (currentSizeIndex < sizes.length - 1) { currentSizeIndex++; applyTextSize(); } });
+
+sizeDownBtn.addEventListener('click', () => { if (currentSizeIndex > 0) { currentSizeIndex--; applyTextSize(); } });
+
+
+
+        // コピペ機能（クリップボード）
+
+copyBtn.addEventListener('click', () => {
+
+const val = (activePaneId === 'A' ? editorA : editorB).value;
+
+if (!val) return;
+
+const el = document.createElement("textarea");
+
+el.value = val; document.body.appendChild(el);
+
+            el.select(); document.execCommand('copy'); document.body.removeChild(el);
+
+            el.select(); 
+
+            document.execCommand('copy'); 
+
+            document.body.removeChild(el);
+
+showToast(`Copied`);
+
+});
+
+
+
+@@ -347,6 +353,7 @@ <h3 class="text-[11px] font-black mb-4 text-slate-800 uppercase tracking-widest"
+
+setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, 0)'; }, 1000);
+
+}
+
+
+
+        // クリアボタンのダイアログ制御
+
+clearBtn.addEventListener('click', () => {
+
+if ((activePaneId === 'A' ? editorA : editorB).value.trim()) confirmDialog.classList.replace('hidden', 'flex');
+
+});
+
+
+
+このWebアプリの仕様変更をしたい
+
+
+
+# 変更箇所
+
+現状、clearはあるがall clearがない
+
+clearの右にall clearのボタンを設置して機能を追加してほしい
+
+clear（アクティブなペインのみ消去）の右側に all clear（両方のペインを一度に消去）ボタンを追加するための変更手順とコード例です。
+
+1. HTML側の変更
+clear ボタン（clearBtn）の直後に all clear ボタン（allClearBtn）を追加します。
+
+HTML
+<!-- 変更前イメージ -->
+<button id="clearBtn">Clear</button>
+
+<!-- 変更後 -->
+<button id="clearBtn">Clear</button>
+<button id="allClearBtn">All Clear</button>
+2. JavaScript側の変更
+ボタン要素の取得に allClearBtn を追加します。
+
+全消去用の確認ダイアログ処理または実行イベントを追加します。
+
+① 要素の取得部分に追加
+JavaScript
+const clearBtn = document.getElementById('clearBtn');
+const allClearBtn = document.getElementById('allClearBtn'); // 追加
+② イベントリスナーの追加
+両方のエディタの内容を判定し、実行（必要に応じてダイアログ表示）してストレージも削除・更新します。
+
+JavaScript
+// 単一ペインのクリア（既存の処理）
+clearBtn.addEventListener('click', () => {
+    const activeEditor = activePaneId === 'A' ? editorA : editorB;
+    if (activeEditor.value.trim()) {
+        confirmDialog.classList.replace('hidden', 'flex');
+        // ※確定時の処理で activeEditor.value = ''; localStorage.setItem('p_' + activePaneId.toLowerCase(), ''); を実行
+    }
+});
+
+// All Clear（両方のペインを消去）を追加
+allClearBtn.addEventListener('click', () => {
+    // 両方のエディタのいずれかにテキストがあるか確認
+    if (editorA.value.trim() || editorB.value.trim()) {
+        if (confirm('両方のテキストをすべて消去しますか？')) {
+            editorA.value = '';
+            editorB.value = '';
+            localStorage.setItem('p_a', '');
+            localStorage.setItem('p_b', '');
+            showToast('All Cleared');
+        }
+    }
+});
+※既存のモーダルダイアログ（confirmDialog）を流用する場合は、ダイアログ呼び出し時に「単一クリア」か「全消去」かを判別するフラグを設定するか、上記のように簡易的に confirm() ダイアログを利用・またはAll Clear専用のモーダル処理を分岐させます。
+
+完成したコードを出力して
+
+Your index.html file is ready
+
+HTML のアイコン
+index
+ HTML 
+開く
+ご提示いただいたコードベースを基に、Clear ボタンの右隣に All Clear ボタンを追加し、両方のペインを消去できる機能（確認ダイアログ・ローカルストレージ更新・トースト表示を含む）を組み込んだ完成コードを作成しました。
+
+完成コード (index.html)
+HTML
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Parallel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Pane Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* エディタの基本スタイル */
-        .editor-input {
-            width: 100%;
-            height: 100%;
-            resize: none;
-            outline: none;
-            border: none;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            color: #1e293b;
-            padding: 1rem;
-            /* フッターの高さ（110px）に合わせて余白を確保 */
-            padding-bottom: 8rem; 
-            transition: font-size 0.2s ease, background-color 0.4s ease, color 0.4s ease;
-        }
-
-        /* 独立したスクロールバー */
-        .scroll-custom::-webkit-scrollbar {
-            width: 4px;
-        }
-        .scroll-custom::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .scroll-custom::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        /* フォントサイズ設定 */
-        .text-size-sm { font-size: 0.8rem; }
-        .text-size-md { font-size: 0.9375rem; }
-        .text-size-lg { font-size: 1.125rem; }
-        .text-size-xl { font-size: 1.375rem; }
-
         /* --- レスポンシブ制御 --- */
-
         /* 表示パターン：小 (640px以下) */
         @media (max-width: 640px) {
             .pane {
                 display: none !important;
                 width: 100%;
-                height: 100%;
-                flex: 1;
             }
             .pane.active {
                 display: flex !important;
-                animation: flipIn 0.4s ease-out;
-            }
-            .pane-border, .desktop-only {
-                display: none !important;
-            }
-            /* 小サイズのときはサイドラベルを表示しない */
-            .header-bar {
-                display: none !important;
-            }
-            #flipToggle {
-                display: flex !important;
-            }
-            .font-size-label {
-                display: none !important;
-            }
-            .font-size-icon {
-                display: block !important;
-            }
-            /* 小サイズのときはボタンを2段にする */
-            .footer-container {
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-                justify-content: flex-start !important;
-                padding-top: 0.75rem !important;
-            }
-            .footer-row {
-                display: flex !important;
-                width: 100%;
-                justify-content: center;
             }
         }
 
@@ -89,200 +307,116 @@
             .pane {
                 display: flex !important; 
                 flex: 1;
-                position: relative;
-            }
-            .pane-border {
-                width: 1px;
-                background-color: #f1f5f9;
-                display: block;
-            }
-            #flipToggle {
-                display: none !important;
-            }
-            /* 大サイズでは常にすべての要素を横一列に並める */
-            .footer-container {
-                flex-direction: row !important;
-                justify-content: center !important;
-                align-items: center !important;
-                padding-top: 0 !important;
-                gap: 1.25rem !important; 
-            }
-            /* グループ構造を無視して横並びを強制 */
-            .footer-row {
-                display: flex !important;
-                flex-direction: row !important;
-                gap: 1.25rem !important;
-                width: auto !important;
-            }
-            .desktop-only {
-                display: inline !important;
             }
         }
 
-        /* 全サイズ共通のボタン高さ */
-        .action-btn {
-            height: 2.25rem !important; 
+        .pane.inactive {
+            opacity: 0.7;
         }
-
-        .font-size-icon {
-            display: none;
-        }
-
-        @keyframes flipIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* 状態によるスタイルの切り替え */
-        .pane.active { background-color: white !important; }
-        .pane.active .editor-input { background-color: white !important; color: #1e293b; }
-        .pane.inactive { background-color: #f8fafc !important; }
-        .pane.inactive .editor-input { background-color: #f8fafc !important; color: #94a3b8; }
-
-        .flip-icon {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .flipped .flip-icon {
+        
+        .flipped #flipIcon {
             transform: rotate(180deg);
-        }
-
-        ::placeholder {
-            color: #cbd5e1;
-            opacity: 1;
-            font-weight: 300;
-            letter-spacing: 0.02em;
         }
     </style>
 </head>
-<body class="bg-white text-slate-900 min-h-screen flex flex-col h-screen overflow-hidden">
+<body class="bg-slate-100 min-h-screen flex flex-col font-sans text-slate-800">
 
-    <!-- ヘッダー -->
-    <header class="bg-white border-b shrink-0 px-4 py-2 flex justify-between items-center z-30">
-        <h1 class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4m-4-4l4-4" />
-            </svg>
-            Parallel
-        </h1>
-        <div class="hidden sm:flex items-center gap-4 text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-            <span>Dynamic Polarity View</span>
+    <!-- ヘッダー / ツールバー -->
+    <header class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <h1 class="text-lg font-bold text-slate-700">Dual Text Editor</h1>
+        
+        <!-- コントロール群 -->
+        <div class="flex items-center space-x-2">
+            <!-- フォントサイズ変更ボタン -->
+            <button id="sizeDownBtn" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded font-bold border border-slate-300">A-</button>
+            <button id="sizeUpBtn" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded font-bold border border-slate-300">A+</button>
+            
+            <div class="h-4 w-[1px] bg-slate-300 mx-1"></div>
+
+            <!-- コピー / クリア / All Clear ボタン -->
+            <button id="copyBtn" class="px-3 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold rounded border border-indigo-200 transition">Copy</button>
+            <button id="clearBtn" class="px-3 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded border border-rose-200 transition">Clear</button>
+            
+            <!-- 追加: All Clear ボタン -->
+            <button id="allClearBtn" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold rounded shadow-sm transition">All Clear</button>
+
+            <!-- モバイル用反転トグルボタン -->
+            <button id="flipToggle" class="sm:hidden ml-2 p-1.5 bg-slate-100 rounded border border-slate-300 transition-transform duration-300">
+                <svg id="flipIcon" class="w-4 h-4 text-slate-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
-    <!-- メインエリア -->
-    <main class="flex-1 overflow-hidden flex relative bg-slate-50">
-        <section id="paneA" class="pane active flex flex-col">
-            <div class="header-bar px-4 py-1.5 text-[9px] font-black uppercase tracking-widest shrink-0 transition-colors min-h-[24px]">
-                <span class="side-label" id="labelA">Side: Light</span>
+    <!-- エディタ領域 -->
+    <main class="flex-1 flex flex-col sm:flex-row p-4 gap-4 max-w-7xl w-full mx-auto">
+        <!-- ペイン A -->
+        <div id="paneA" class="pane flex flex-col bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden transition-all">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                <h3 id="labelA" class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Side: Light</h3>
+                <span class="text-[10px] text-slate-400 font-mono">PANE A</span>
             </div>
-            <textarea id="editorA" class="editor-input scroll-custom text-size-md" placeholder="Start typing..."></textarea>
-        </section>
+            <textarea id="editorA" class="flex-1 w-full p-4 resize-none focus:outline-none text-slate-700 font-mono transition-all" placeholder="Type here..."></textarea>
+        </div>
 
-        <div class="pane-border"></div>
-
-        <section id="paneB" class="pane inactive flex flex-col">
-            <div class="header-bar px-4 py-1.5 text-[9px] font-black uppercase tracking-widest shrink-0 transition-colors min-h-[24px]">
-                <span class="side-label" id="labelB">Side: Shadow</span>
+        <!-- ペイン B -->
+        <div id="paneB" class="pane flex flex-col bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden transition-all">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                <h3 id="labelB" class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Side: Shadow</h3>
+                <span class="text-[10px] text-slate-400 font-mono">PANE B</span>
             </div>
-            <textarea id="editorB" class="editor-input scroll-custom text-size-md" placeholder="Type something..."></textarea>
-        </section>
+            <textarea id="editorB" class="flex-1 w-full p-4 resize-none focus:outline-none text-slate-700 font-mono transition-all" placeholder="Type here..."></textarea>
+        </div>
     </main>
 
-    <!-- フッター -->
-    <footer class="h-[110px] px-4 pb-[30px] bg-white border-t shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.04)] z-20 flex items-center">
-        <div class="footer-container flex items-center justify-center w-full max-w-5xl mx-auto h-full">
-            
-            <!-- アクショングループ -->
-            <div class="footer-row flex items-center gap-3">
-                <!-- コピー -->
-                <button id="copyBtn" class="action-btn min-w-[3rem] px-4 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-xl transition-all active:scale-95" title="コピー">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <span class="copy-text desktop-only hidden ml-2 text-[10px] font-bold uppercase tracking-widest">Copy</span>
-                </button>
-
-                <!-- 反転 (モバイル専用) -->
-                <button id="flipToggle" class="action-btn w-12 hidden items-center justify-center bg-slate-100 text-slate-500 border border-slate-200 rounded-xl transition-all active:scale-95" title="切り替え">
-                    <div class="flip-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357-2H15" />
-                        </svg>
-                    </div>
-                </button>
-            </div>
-
-            <!-- ツールグループ -->
-            <div class="footer-row flex items-center gap-3">
-                <!-- クリア -->
-                <button id="clearBtn" class="action-btn min-w-[3rem] px-4 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 rounded-xl transition-all active:scale-95" title="クリア">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span class="clear-text desktop-only hidden ml-2 text-[10px] font-bold uppercase tracking-widest">Clear</span>
-                </button>
-                
-                <!-- フォントサイズ -->
-                <div class="flex items-center bg-slate-50 rounded-xl p-1 border border-slate-200 action-btn">
-                    <button id="sizeDownBtn" class="w-8 md:w-9 h-full flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-600 rounded-lg transition-all disabled:opacity-20">
-                        <span class="font-size-label text-[9px]">A</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="font-size-icon w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                    <div class="w-[1px] h-3 bg-slate-200 mx-0.5"></div>
-                    <button id="sizeUpBtn" class="w-8 md:w-9 h-full flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-600 rounded-lg transition-all disabled:opacity-20">
-                        <span class="font-size-label text-sm font-bold">A</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="font-size-icon w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </footer>
-
-    <!-- トースト & ダイアログ -->
-    <div id="toast" class="fixed bottom-32 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest opacity-0 transition-all duration-300 pointer-events-none z-50 shadow-xl">
-        Switched
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50">
+        Notification
     </div>
 
-    <div id="confirmDialog" class="fixed inset-0 bg-slate-900/40 hidden items-center justify-center z-50 backdrop-blur-[2px] p-4">
-        <div class="bg-white p-6 rounded-[1.5rem] shadow-2xl w-full max-w-[240px] text-center">
-            <h3 class="text-[11px] font-black mb-4 text-slate-800 uppercase tracking-widest">CLEAR OK?</h3>
-            <div class="flex flex-col gap-2">
-                <button id="confirmClear" class="w-full py-3 bg-red-500 text-white text-[10px] font-black rounded-xl active:scale-95 uppercase">CLEAR</button>
-                <button id="cancelClear" class="w-full py-3 text-slate-400 text-[10px] font-bold rounded-xl uppercase">CANCEL</button>
+    <!-- クリア確認ダイアログ -->
+    <div id="confirmDialog" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h4 class="font-bold text-slate-800 mb-2">クリアの確認</h4>
+            <p id="confirmMessage" class="text-sm text-slate-600 mb-6">テキストを消去しますか？</p>
+            <div class="flex justify-end space-x-3">
+                <button id="confirmCancelBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded">キャンセル</button>
+                <button id="confirmOkBtn" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded">消去する</button>
             </div>
         </div>
     </div>
 
     <script>
-        const editorA = document.getElementById('editorA');
-        const editorB = document.getElementById('editorB');
         const paneA = document.getElementById('paneA');
         const paneB = document.getElementById('paneB');
+        const editorA = document.getElementById('editorA');
+        const editorB = document.getElementById('editorB');
         const labelA = document.getElementById('labelA');
         const labelB = document.getElementById('labelB');
         const flipToggle = document.getElementById('flipToggle');
-        const copyBtn = document.getElementById('copyBtn');
-        const clearBtn = document.getElementById('clearBtn');
+        
         const sizeUpBtn = document.getElementById('sizeUpBtn');
         const sizeDownBtn = document.getElementById('sizeDownBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const allClearBtn = document.getElementById('allClearBtn');
+        
         const toast = document.getElementById('toast');
         const confirmDialog = document.getElementById('confirmDialog');
-        
-        const sizes = ['text-size-sm', 'text-size-md', 'text-size-lg', 'text-size-xl'];
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
+
+        const sizes = ['text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl'];
         let currentSizeIndex = 1;
         let activePaneId = 'A';
+        let pendingClearMode = null; // 'active' (単一消去) または 'all' (全体消去)
 
         // 初期ロード時にローカルストレージから復元
         window.onload = () => {
             editorA.value = localStorage.getItem('p_a') || '';
             editorB.value = localStorage.getItem('p_b') || '';
-            const savedSize = localStorage.getItem('p_size');
-            if (savedSize && sizes.indexOf(savedSize) !== -1) currentSizeIndex = sizes.indexOf(savedSize);
             applyTextSize();
             updateActiveUI();
         };
@@ -290,10 +424,10 @@
         // UIの状態更新（アクティブ側の背景色やラベルを制御）
         function updateActiveUI() {
             const isA = activePaneId === 'A';
-            
-            paneA.className = `pane ${isA ? 'active' : 'inactive'} flex flex-col`;
-            paneB.className = `pane ${!isA ? 'active' : 'inactive'} flex flex-col`;
-            
+
+            paneA.className = `pane ${isA ? 'active ring-2 ring-indigo-500' : 'inactive'} flex flex-col`;
+            paneB.className = `pane ${!isA ? 'active ring-2 ring-indigo-500' : 'inactive'} flex flex-col`;
+
             labelA.textContent = isA ? 'Side: Light' : 'Side: Shadow';
             labelB.textContent = !isA ? 'Side: Light' : 'Side: Shadow';
 
@@ -328,44 +462,378 @@
                 sizes.forEach(s => ed.classList.remove(s));
                 ed.classList.add(sizes[currentSizeIndex]);
             });
-            localStorage.setItem('p_size', sizes[currentSizeIndex]);
-            sizeUpBtn.disabled = (currentSizeIndex === sizes.length - 1);
-            sizeDownBtn.disabled = (currentSizeIndex === 0);
         }
 
-        sizeUpBtn.addEventListener('click', () => { if (currentSizeIndex < sizes.length - 1) { currentSizeIndex++; applyTextSize(); } });
-        sizeDownBtn.addEventListener('click', () => { if (currentSizeIndex > 0) { currentSizeIndex--; applyTextSize(); } });
+        sizeUpBtn.addEventListener('click', () => { 
+            if (currentSizeIndex < sizes.length - 1) { 
+                currentSizeIndex++; 
+                applyTextSize(); 
+            } 
+        });
+        sizeDownBtn.addEventListener('click', () => { 
+            if (currentSizeIndex > 0) { 
+                currentSizeIndex--; 
+                applyTextSize(); 
+            } 
+        });
 
         // コピペ機能（クリップボード）
         copyBtn.addEventListener('click', () => {
             const val = (activePaneId === 'A' ? editorA : editorB).value;
             if (!val) return;
-            const el = document.createElement("textarea");
-            el.value = val; document.body.appendChild(el);
-            el.select(); 
-            document.execCommand('copy'); 
-            document.body.removeChild(el);
-            showToast(`Copied`);
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(val).then(() => showToast('Copied'));
+            } else {
+                const el = document.createElement("textarea");
+                el.value = val; 
+                document.body.appendChild(el);
+                el.select(); 
+                document.execCommand('copy'); 
+                document.body.removeChild(el);
+                showToast('Copied');
+            }
         });
 
-        function showToast(m) {
-            toast.textContent = m; toast.style.opacity = '1'; toast.style.transform = 'translate(-50%, -5px)';
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, 0)'; }, 1000);
+        // トースト表示機能
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -8px)';
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                toast.style.transform = 'translate(-50%, 0)'; 
+            }, 1000);
         }
 
-        // クリアボタンのダイアログ制御
+        // 単一ペイン消去 (Clear)
         clearBtn.addEventListener('click', () => {
-            if ((activePaneId === 'A' ? editorA : editorB).value.trim()) confirmDialog.classList.replace('hidden', 'flex');
+            const currentVal = (activePaneId === 'A' ? editorA : editorB).value;
+            if (currentVal.trim()) {
+                pendingClearMode = 'active';
+                confirmMessage.textContent = `現在選択中のペイン (${activePaneId}) のテキストを消去しますか？`;
+                confirmDialog.classList.replace('hidden', 'flex');
+            }
         });
 
-        document.getElementById('cancelClear').addEventListener('click', () => confirmDialog.classList.replace('flex', 'hidden'));
-        document.getElementById('confirmClear').addEventListener('click', () => {
-            const ed = activePaneId === 'A' ? editorA : editorB;
-            ed.value = '';
-            localStorage.setItem(activePaneId === 'A' ? 'p_a' : 'p_b', '');
+        // 全消去 (All Clear)
+        allClearBtn.addEventListener('click', () => {
+            if (editorA.value.trim() || editorB.value.trim()) {
+                pendingClearMode = 'all';
+                confirmMessage.textContent = '両方のペインのテキストをすべて消去しますか？';
+                confirmDialog.classList.replace('hidden', 'flex');
+            }
+        });
+
+        // ダイアログのキャンセルボタン
+        confirmCancelBtn.addEventListener('click', () => {
             confirmDialog.classList.replace('flex', 'hidden');
-            ed.focus();
+            pendingClearMode = null;
+        });
+
+        // ダイアログの決定ボタン
+        confirmOkBtn.addEventListener('click', () => {
+            if (pendingClearMode === 'active') {
+                if (activePaneId === 'A') {
+                    editorA.value = '';
+                    localStorage.setItem('p_a', '');
+                } else {
+                    editorB.value = '';
+                    localStorage.setItem('p_b', '');
+                }
+                showToast('Cleared');
+            } else if (pendingClearMode === 'all') {
+                editorA.value = '';
+                editorB.value = '';
+                localStorage.setItem('p_a', '');
+                localStorage.setItem('p_b', '');
+                showToast('All Cleared');
+            }
+            confirmDialog.classList.replace('flex', 'hidden');
+            pendingClearMode = null;
         });
     </script>
 </body>
 </html>
+主な変更・拡張ポイント
+
+
+
+Gemini は AI であり、間違えることがあります。
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Pane Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- レスポンシブ制御 --- */
+        /* 表示パターン：小 (640px以下) */
+        @media (max-width: 640px) {
+            .pane {
+                display: none !important;
+                width: 100%;
+            }
+            .pane.active {
+                display: flex !important;
+            }
+        }
+
+        /* 表示パターン：大 (641px以上) */
+        @media (min-width: 641px) {
+            .pane {
+                display: flex !important; 
+                flex: 1;
+            }
+        }
+
+        .pane.inactive {
+            opacity: 0.7;
+        }
+        
+        .flipped #flipIcon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col font-sans text-slate-800">
+
+    <!-- ヘッダー / ツールバー -->
+    <header class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <h1 class="text-lg font-bold text-slate-700">Dual Text Editor</h1>
+        
+        <!-- コントロール群 -->
+        <div class="flex items-center space-x-2">
+            <!-- フォントサイズ変更ボタン -->
+            <button id="sizeDownBtn" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded font-bold border border-slate-300">A-</button>
+            <button id="sizeUpBtn" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded font-bold border border-slate-300">A+</button>
+            
+            <div class="h-4 w-[1px] bg-slate-300 mx-1"></div>
+
+            <!-- コピー / クリア / All Clear ボタン -->
+            <button id="copyBtn" class="px-3 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold rounded border border-indigo-200 transition">Copy</button>
+            <button id="clearBtn" class="px-3 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded border border-rose-200 transition">Clear</button>
+            <!-- 追加: All Clear ボタン -->
+            <button id="allClearBtn" class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold rounded shadow-sm transition">All Clear</button>
+
+            <!-- モバイル用反転トグルボタン (640px以下で表示) -->
+            <button id="flipToggle" class="sm:hidden ml-2 p-1.5 bg-slate-100 rounded border border-slate-300 transition-transform duration-300">
+                <svg id="flipIcon" class="w-4 h-4 text-slate-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- エディタ領域 -->
+    <main class="flex-1 flex flex-col sm:flex-row p-4 gap-4 max-w-7xl w-full mx-auto">
+        <!-- ペイン A -->
+        <div id="paneA" class="pane flex flex-col bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden transition-all">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                <h3 id="labelA" class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Side: Light</h3>
+                <span class="text-[10px] text-slate-400 font-mono">PANE A</span>
+            </div>
+            <textarea id="editorA" class="flex-1 w-full p-4 resize-none focus:outline-none text-slate-700 font-mono transition-all" placeholder="Type here..."></textarea>
+        </div>
+
+        <!-- ペイン B -->
+        <div id="paneB" class="pane flex flex-col bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden transition-all">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                <h3 id="labelB" class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Side: Shadow</h3>
+                <span class="text-[10px] text-slate-400 font-mono">PANE B</span>
+            </div>
+            <textarea id="editorB" class="flex-1 w-full p-4 resize-none focus:outline-none text-slate-700 font-mono transition-all" placeholder="Type here..."></textarea>
+        </div>
+    </main>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50">
+        Notification
+    </div>
+
+    <!-- クリア確認ダイアログ (Clear用) -->
+    <div id="confirmDialog" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h4 class="font-bold text-slate-800 mb-2">クリアの確認</h4>
+            <p id="confirmMessage" class="text-sm text-slate-600 mb-6">アクティブなペインのテキストを消去しますか？</p>
+            <div class="flex justify-end space-x-3">
+                <button id="confirmCancelBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded">キャンセル</button>
+                <button id="confirmOkBtn" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded">消去する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paneA = document.getElementById('paneA');
+        const paneB = document.getElementById('paneB');
+        const editorA = document.getElementById('editorA');
+        const editorB = document.getElementById('editorB');
+        const labelA = document.getElementById('labelA');
+        const labelB = document.getElementById('labelB');
+        const flipToggle = document.getElementById('flipToggle');
+        
+        const sizeUpBtn = document.getElementById('sizeUpBtn');
+        const sizeDownBtn = document.getElementById('sizeDownBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const allClearBtn = document.getElementById('allClearBtn');
+        
+        const toast = document.getElementById('toast');
+        const confirmDialog = document.getElementById('confirmDialog');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
+
+        const sizes = ['text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl'];
+        let currentSizeIndex = 1; // 初期値 text-sm
+        let activePaneId = 'A';
+        let pendingClearMode = null; // 'active' または 'all'
+
+        // 初期ロード時にローカルストレージから復元
+        window.onload = () => {
+            editorA.value = localStorage.getItem('p_a') || '';
+            editorB.value = localStorage.getItem('p_b') || '';
+            applyTextSize();
+            updateActiveUI();
+        };
+
+        // UIの状態更新（アクティブ側の背景色やラベルを制御）
+        function updateActiveUI() {
+            const isA = activePaneId === 'A';
+
+            // 背景色とアクティブ状態のクラス切り替え
+            paneA.className = `pane ${isA ? 'active ring-2 ring-indigo-500' : 'inactive'} flex flex-col`;
+            paneB.className = `pane ${!isA ? 'active ring-2 ring-indigo-500' : 'inactive'} flex flex-col`;
+
+            // ヘッダーラベルの動的変更 (常にアクティブ側が Light)
+            labelA.textContent = isA ? 'Side: Light' : 'Side: Shadow';
+            labelB.textContent = !isA ? 'Side: Light' : 'Side: Shadow';
+
+            // モバイル用切り替えボタンの状態
+            if (isA) flipToggle.classList.remove('flipped');
+            else flipToggle.classList.add('flipped');
+        }
+
+        // アクティブなペインの切り替え
+        function setActivePane(id, focus = true) {
+            if (activePaneId === id) return;
+            activePaneId = id;
+            updateActiveUI();
+            if (focus) (id === 'A' ? editorA : editorB).focus();
+        }
+
+        // モバイル用反転トグルのイベント
+        flipToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActivePane(activePaneId === 'A' ? 'B' : 'A');
+            showToast('Flipped');
+        });
+
+        // エディタのフォーカス・入力イベント
+        editorA.addEventListener('focus', () => setActivePane('A', false));
+        editorB.addEventListener('focus', () => setActivePane('B', false));
+        editorA.addEventListener('input', () => localStorage.setItem('p_a', editorA.value));
+        editorB.addEventListener('input', () => localStorage.setItem('p_b', editorB.value));
+
+        // フォントサイズの適用
+        function applyTextSize() {
+            [editorA, editorB].forEach(ed => {
+                sizes.forEach(s => ed.classList.remove(s));
+                ed.classList.add(sizes[currentSizeIndex]);
+            });
+        }
+
+        sizeUpBtn.addEventListener('click', () => { 
+            if (currentSizeIndex < sizes.length - 1) { 
+                currentSizeIndex++; 
+                applyTextSize(); 
+            } 
+        });
+        sizeDownBtn.addEventListener('click', () => { 
+            if (currentSizeIndex > 0) { 
+                currentSizeIndex--; 
+                applyTextSize(); 
+            } 
+        });
+
+        // コピペ機能（クリップボード）
+        copyBtn.addEventListener('click', () => {
+            const val = (activePaneId === 'A' ? editorA : editorB).value;
+            if (!val) return;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(val).then(() => showToast('Copied'));
+            } else {
+                const el = document.createElement("textarea");
+                el.value = val; 
+                document.body.appendChild(el);
+                el.select(); 
+                document.execCommand('copy'); 
+                document.body.removeChild(el);
+                showToast('Copied');
+            }
+        });
+
+        // トースト表示機能
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -8px)';
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                toast.style.transform = 'translate(-50%, 0)'; 
+            }, 1000);
+        }
+
+        // クリアボタン（アクティブなペインのみ）
+        clearBtn.addEventListener('click', () => {
+            const currentVal = (activePaneId === 'A' ? editorA : editorB).value;
+            if (currentVal.trim()) {
+                pendingClearMode = 'active';
+                confirmMessage.textContent = `Side: ${activePaneId} のテキストを消去しますか？`;
+                confirmDialog.classList.replace('hidden', 'flex');
+            }
+        });
+
+        // All Clearボタン（両方のペイン）
+        allClearBtn.addEventListener('click', () => {
+            if (editorA.value.trim() || editorB.value.trim()) {
+                pendingClearMode = 'all';
+                confirmMessage.textContent = '両方のペインのテキストをすべて消去しますか？';
+                confirmDialog.classList.replace('hidden', 'flex');
+            }
+        });
+
+        // 確認ダイアログの操作イベント
+        confirmCancelBtn.addEventListener('click', () => {
+            confirmDialog.classList.replace('flex', 'hidden');
+            pendingClearMode = null;
+        });
+
+        confirmOkBtn.addEventListener('click', () => {
+            if (pendingClearMode === 'active') {
+                if (activePaneId === 'A') {
+                    editorA.value = '';
+                    localStorage.setItem('p_a', '');
+                } else {
+                    editorB.value = '';
+                    localStorage.setItem('p_b', '');
+                }
+                showToast('Cleared');
+            } else if (pendingClearMode === 'all') {
+                editorA.value = '';
+                editorB.value = '';
+                localStorage.setItem('p_a', '');
+                localStorage.setItem('p_b', '');
+                showToast('All Cleared');
+            }
+            confirmDialog.classList.replace('flex', 'hidden');
+            pendingClearMode = null;
+        });
+    </script>
+</body>
+</html>
+index.html
+「index.html」を表示しています。
